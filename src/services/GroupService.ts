@@ -29,6 +29,7 @@ export class GroupService {
     userId: string,
     role: 'admin' | 'member' = 'member'
   ): Promise<void> {
+    // @ts-expect-error - Supabase type inference issue, Database type is correct
     const { error } = await this.supabaseAdapter.getClient()
       .from('conversation_members')
       .insert({

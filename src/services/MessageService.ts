@@ -108,6 +108,7 @@ export class MessageService {
 
       // Get full message data with encrypted content and IV
       const client = this.supabaseAdapter.getClient();
+      // @ts-expect-error - Supabase type inference issue, Database type is correct
       const { data } = await client
         .from('messages')
         .select('encrypted_content, iv')

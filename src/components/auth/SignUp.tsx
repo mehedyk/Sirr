@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/authStore';
 import { validateEmail, validateUsername, validatePassword } from '@/utils/validators';
 
@@ -9,6 +10,7 @@ export function SignUp() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const signUp = useAuthStore((state) => state.signUp);
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,9 +37,10 @@ export function SignUp() {
 
     try {
       await signUp(email, password, username);
+      // Redirect to dashboard after successful signup
+      navigate('/dashboard');
     } catch (err: any) {
       setError(err.message || 'Failed to sign up');
-    } finally {
       setLoading(false);
     }
   };
@@ -103,6 +106,17 @@ export function SignUp() {
             {loading ? 'Creating account...' : 'Sign Up'}
           </button>
         </form>
+        <div className="mt-6 text-center">
+          <p className="text-sm text-[var(--color-text-secondary)]">
+            Already have an account?{' '}
+            <Link
+              to="/login"
+              className="text-[var(--color-primary)] hover:underline font-medium"
+            >
+              Sign in
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );

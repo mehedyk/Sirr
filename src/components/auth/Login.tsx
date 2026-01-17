@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/authStore';
 import { validateEmail } from '@/utils/validators';
 
@@ -8,6 +9,7 @@ export function Login() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const signIn = useAuthStore((state) => state.signIn);
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,9 +24,10 @@ export function Login() {
 
     try {
       await signIn(email, password);
+      // Redirect to dashboard after successful sign in
+      navigate('/dashboard');
     } catch (err: any) {
       setError(err.message || 'Failed to sign in');
-    } finally {
       setLoading(false);
     }
   };
@@ -76,6 +79,17 @@ export function Login() {
             {loading ? 'Signing in...' : 'Sign In'}
           </button>
         </form>
+        <div className="mt-6 text-center">
+          <p className="text-sm text-[var(--color-text-secondary)]">
+            Don't have an account?{' '}
+            <Link
+              to="/signup"
+              className="text-[var(--color-primary)] hover:underline font-medium"
+            >
+              Sign up
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );

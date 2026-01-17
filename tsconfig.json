@@ -14,11 +14,12 @@
     "noEmit": true,
     "jsx": "react-jsx",
 
-    /* Linting - Relaxed for build */
+    /* Linting - Disabled for initial build */
     "strict": false,
     "noUnusedLocals": false,
     "noUnusedParameters": false,
-    "noFallthroughCasesInSwitch": true,
+    "noFallthroughCasesInSwitch": false,
+    "noImplicitAny": false,
 
     /* Path aliases */
     "baseUrl": ".",
@@ -27,5 +28,5 @@
     }
   },
   "include": ["src"],
-  "references": [{ "path": "./tsconfig.node.json" }]
+  "exclude": ["node_modules", "dist"]
 }

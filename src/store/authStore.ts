@@ -27,20 +27,20 @@ export const useAuthStore = create<AuthState>((set) => ({
     if (error) throw error;
 
     if (data.user) {
-      const userData = await supabase
+      const { data: userData, error: userError } = await supabase
         .from('users')
         .select('*')
         .eq('id', data.user.id)
         .single();
 
-      if (userData.data) {
+      if (userData && !userError) {
         set({
           user: new User({
-            id: userData.data.id,
-            username: userData.data.username,
-            publicKey: userData.data.public_key || undefined,
-            createdAt: new Date(userData.data.created_at),
-            updatedAt: new Date(userData.data.updated_at),
+            id: userData.id,
+            username: userData.username,
+            publicKey: userData.public_key || undefined,
+            createdAt: new Date(userData.created_at),
+            updatedAt: new Date(userData.updated_at),
           }),
           session: data.session,
         });
@@ -69,20 +69,20 @@ export const useAuthStore = create<AuthState>((set) => ({
 
       if (profileError) throw profileError;
 
-      const userData = await supabase
+      const { data: userData, error: userError } = await supabase
         .from('users')
         .select('*')
         .eq('id', data.user.id)
         .single();
 
-      if (userData.data) {
+      if (userData && !userError) {
         set({
           user: new User({
-            id: userData.data.id,
-            username: userData.data.username,
-            publicKey: userData.data.public_key || undefined,
-            createdAt: new Date(userData.data.created_at),
-            updatedAt: new Date(userData.data.updated_at),
+            id: userData.id,
+            username: userData.username,
+            publicKey: userData.public_key || undefined,
+            createdAt: new Date(userData.created_at),
+            updatedAt: new Date(userData.updated_at),
           }),
           session: data.session,
         });

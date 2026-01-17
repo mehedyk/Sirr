@@ -131,12 +131,13 @@ export class SupabaseAdapter {
 
     if (error || !data) return null;
 
+    const userData = data as Database['public']['Tables']['users']['Row'];
     return new User({
-      id: data.id,
-      username: data.username,
-      publicKey: data.public_key || undefined,
-      createdAt: new Date(data.created_at),
-      updatedAt: new Date(data.updated_at),
+      id: userData.id,
+      username: userData.username,
+      publicKey: userData.public_key || undefined,
+      createdAt: new Date(userData.created_at),
+      updatedAt: new Date(userData.updated_at),
     });
   }
 
@@ -148,25 +149,26 @@ export class SupabaseAdapter {
         username,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
-      })
+      } as Database['public']['Tables']['users']['Insert'])
       .select()
       .single();
 
-    if (error) throw error;
+    if (error || !data) throw error || new Error('Failed to create user');
 
+    const userData = data as Database['public']['Tables']['users']['Row'];
     return new User({
-      id: data.id,
-      username: data.username,
-      publicKey: data.public_key || undefined,
-      createdAt: new Date(data.created_at),
-      updatedAt: new Date(data.updated_at),
+      id: userData.id,
+      username: userData.username,
+      publicKey: userData.public_key || undefined,
+      createdAt: new Date(userData.created_at),
+      updatedAt: new Date(userData.updated_at),
     });
   }
 
   public async updateUsername(userId: string, username: string): Promise<void> {
     const { error } = await this.client
       .from('users')
-      .update({ username, updated_at: new Date().toISOString() })
+      .update({ username, updated_at: new Date().toISOString() } as Database['public']['Tables']['users']['Update'])
       .eq('id', userId);
 
     if (error) throw error;
@@ -182,12 +184,13 @@ export class SupabaseAdapter {
 
     if (error || !data) return null;
 
+    const convData = data as Database['public']['Tables']['conversations']['Row'];
     return new Conversation({
-      id: data.id,
-      type: data.type,
-      name: data.name || undefined,
-      createdAt: new Date(data.created_at),
-      updatedAt: new Date(data.updated_at),
+      id: convData.id,
+      type: convData.type,
+      name: convData.name || undefined,
+      createdAt: new Date(convData.created_at),
+      updatedAt: new Date(convData.updated_at),
     });
   }
 
@@ -202,18 +205,19 @@ export class SupabaseAdapter {
         name: name || null,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
-      })
+      } as Database['public']['Tables']['conversations']['Insert'])
       .select()
       .single();
 
-    if (error) throw error;
+    if (error || !data) throw error || new Error('Failed to create conversation');
 
+    const convData = data as Database['public']['Tables']['conversations']['Row'];
     return new Conversation({
-      id: data.id,
-      type: data.type,
-      name: data.name || undefined,
-      createdAt: new Date(data.created_at),
-      updatedAt: new Date(data.updated_at),
+      id: convData.id,
+      type: convData.type,
+      name: convData.name || undefined,
+      createdAt: new Date(convData.created_at),
+      updatedAt: new Date(convData.updated_at),
     });
   }
 
@@ -234,20 +238,21 @@ export class SupabaseAdapter {
         message_type: message.messageType,
         created_at: message.createdAt.toISOString(),
         expires_at: message.expiresAt.toISOString(),
-      })
+      } as Database['public']['Tables']['messages']['Insert'])
       .select()
       .single();
 
-    if (error) throw error;
+    if (error || !data) throw error || new Error('Failed to send message');
 
+    const msgData = data as Database['public']['Tables']['messages']['Row'];
     return MessageFactory.createFromData({
-      id: data.id,
-      conversationId: data.conversation_id,
-      senderId: data.sender_id,
+      id: msgData.id,
+      conversationId: msgData.conversation_id,
+      senderId: msgData.sender_id,
       content: '', // Will be decrypted on client
-      messageType: data.message_type,
-      createdAt: new Date(data.created_at),
-      expiresAt: new Date(data.expires_at),
+      messageType: msgData.message_type,
+      createdAt: new Date(msgData.created_at),
+      expiresAt: new Date(msgData.expires_at),
     });
   }
 
@@ -260,17 +265,18 @@ export class SupabaseAdapter {
 
     if (error) throw error;
 
-    return (data || []).map(msg =>
-      MessageFactory.createFromData({
-        id: msg.id,
-        conversationId: msg.conversation_id,
-        senderId: msg.sender_id,
-        content: msg.encrypted_content, // Will be decrypted
-        messageType: msg.message_type,
-        createdAt: new Date(msg.created_at),
-        expiresAt: new Date(msg.expires_at),
-      })
-    );
+    return (data || []).map((msg: any) => {
+      const msgData = msg as Database['public']['Tables']['messages']['Row'];
+      return MessageFactory.createFromData({
+        id: msgData.id,
+        conversationId: msgData.conversation_id,
+        senderId: msgData.sender_id,
+        content: msgData.encrypted_content, // Will be decrypted
+        messageType: msgData.message_type,
+        createdAt: new Date(msgData.created_at),
+        expiresAt: new Date(msgData.expires_at),
+      });
+    });
   }
 
   // Realtime subscriptions

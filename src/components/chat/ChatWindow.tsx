@@ -4,7 +4,6 @@ import { MessageList } from './MessageList';
 import { MessageInput } from './MessageInput';
 import { MessageService } from '@/services/MessageService';
 import { supabaseAdapter } from '@/lib/supabase';
-import { useEncryption } from '@/hooks/useEncryption';
 
 interface ChatWindowProps {
   conversationId: string;

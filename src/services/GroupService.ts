@@ -1,8 +1,7 @@
 import { Conversation } from '@/domain/models/Conversation';
 import { User } from '@/domain/models/User';
-import { SupabaseAdapter } from './SupabaseAdapter';
+import { SupabaseAdapter, Database } from './SupabaseAdapter';
 import { KeyManager } from './KeyManager';
-import { EncryptionService } from './EncryptionService';
 
 export class GroupService {
   private supabaseAdapter: SupabaseAdapter;
@@ -37,7 +36,7 @@ export class GroupService {
         user_id: userId,
         role,
         joined_at: new Date().toISOString(),
-      });
+      } as Database['public']['Tables']['conversation_members']['Insert']);
 
     if (error) throw error;
 

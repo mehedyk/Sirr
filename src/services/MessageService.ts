@@ -107,17 +107,19 @@ export class MessageService {
       }
 
       // Get full message data with encrypted content and IV
-      const { data } = await this.supabaseAdapter.getClient()
+      const client = this.supabaseAdapter.getClient();
+      const { data } = await client
         .from('messages')
         .select('encrypted_content, iv')
         .eq('id', encryptedMessage.id)
         .single();
 
       if (data) {
+        const messageData = data as { encrypted_content: string; iv: string };
         try {
           const decrypted = await this.encryptionService.decrypt(
-            data.encrypted_content,
-            data.iv,
+            messageData.encrypted_content,
+            messageData.iv,
             conversationKey
           );
           const decryptedMessage = MessageFactory.createFromData({

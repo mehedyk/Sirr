@@ -86,7 +86,8 @@ export class EncryptionService {
     );
 
     // Ensure salt is a proper ArrayBuffer for Web Crypto API
-    const saltBuffer = salt.buffer.slice(salt.byteOffset, salt.byteOffset + salt.byteLength);
+    // Create a new ArrayBuffer to avoid SharedArrayBuffer issues
+    const saltBuffer = new Uint8Array(salt).buffer;
 
     return crypto.subtle.deriveKey(
       {

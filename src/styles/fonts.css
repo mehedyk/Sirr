@@ -1,0 +1,12 @@
+/* Font imports are handled in index.html via Google Fonts CDN */
+/* This file can be used for additional font configurations */
+
+body {
+  font-family: var(--font-body, 'Fira Code', monospace);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading, 'Orbitron', sans-serif);
+}

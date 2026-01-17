@@ -1,0 +1,31 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import './fonts.css';
+@import './themes/neo-noir.css';
+@import './themes/digital-matrix.css';
+@import './themes/midnight-tech.css';
+@import './themes/tech-rust.css';
+@import './themes/solar-shift.css';
+
+:root {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: var(--color-background, #0a0a0a);
+  color: var(--color-text, #ffffff);
+  font-family: var(--font-body, 'Fira Code', monospace);
+  min-height: 100vh;
+}
+
+#root {
+  min-height: 100vh;
+}

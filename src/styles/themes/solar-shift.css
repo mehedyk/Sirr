@@ -1,0 +1,12 @@
+[data-theme="solar-shift"] {
+  --color-background: #0a0e27;
+  --color-background-secondary: #1a1f3a;
+  --color-primary: #ffd700;
+  --color-secondary: #ff4444;
+  --color-accent: #ffaa00;
+  --color-text: #ffffff;
+  --color-text-secondary: #cccccc;
+  --color-border: #2a2f4a;
+  --font-body: 'Space Mono', monospace;
+  --font-heading: 'Orbitron', sans-serif;
+}

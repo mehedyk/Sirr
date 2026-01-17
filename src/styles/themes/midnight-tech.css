@@ -1,0 +1,12 @@
+[data-theme="midnight-tech"] {
+  --color-background: #0d1117;
+  --color-background-secondary: #161b22;
+  --color-primary: #6e40c9;
+  --color-secondary: #8b5cf6;
+  --color-accent: #8b5cf6;
+  --color-text: #c9d1d9;
+  --color-text-secondary: #8b949e;
+  --color-border: #30363d;
+  --font-body: 'Roboto Mono', monospace;
+  --font-heading: 'Barlow', sans-serif;
+}

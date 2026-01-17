@@ -1,0 +1,12 @@
+[data-theme="tech-rust"] {
+  --color-background: #1e1e1e;
+  --color-background-secondary: #2d1b0e;
+  --color-primary: #ff6b35;
+  --color-secondary: #f7931e;
+  --color-accent: #ff6b35;
+  --color-text: #ffffff;
+  --color-text-secondary: #cccccc;
+  --color-border: #3d2815;
+  --font-body: 'JetBrains Mono', monospace;
+  --font-heading: 'Rajdhani', sans-serif;
+}

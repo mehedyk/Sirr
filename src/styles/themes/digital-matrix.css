@@ -1,0 +1,12 @@
+[data-theme="digital-matrix"] {
+  --color-background: #000000;
+  --color-background-secondary: #001100;
+  --color-primary: #00ff41;
+  --color-secondary: #003300;
+  --color-accent: #00ff41;
+  --color-text: #00ff41;
+  --color-text-secondary: #00cc33;
+  --color-border: #003300;
+  --font-body: 'Source Code Pro', monospace;
+  --font-heading: 'Exo 2', sans-serif;
+}

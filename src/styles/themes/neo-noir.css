@@ -1,0 +1,12 @@
+[data-theme="neo-noir"] {
+  --color-background: #0a0a0a;
+  --color-background-secondary: #1a1a1a;
+  --color-primary: #00ff88;
+  --color-secondary: #00d4ff;
+  --color-accent: #00ff88;
+  --color-text: #ffffff;
+  --color-text-secondary: #888888;
+  --color-border: #333333;
+  --font-body: 'Fira Code', monospace;
+  --font-heading: 'Orbitron', sans-serif;
+}

@@ -15,7 +15,6 @@ export function ChatWindow({ conversationId, userId }: ChatWindowProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
   const messageService = new MessageService(supabaseAdapter);
-  const { encrypt } = useEncryption();
 
   useEffect(() => {
     // Load messages
@@ -30,7 +29,10 @@ export function ChatWindow({ conversationId, userId }: ChatWindowProps) {
     });
 
     return () => {
-      // Cleanup subscription if needed
+      // Cleanup subscription
+      if (subscription) {
+        subscription.unsubscribe();
+      }
     };
   }, [conversationId]);
 

@@ -9,7 +9,6 @@ interface UseWebRTCOptions {
 }
 
 export function useWebRTC({ conversationId, userId, initiator = false }: UseWebRTCOptions) {
-  const [peers, setPeers] = useState<Map<string, SimplePeer.Instance>>(new Map());
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
   const [remoteStreams, setRemoteStreams] = useState<Map<string, MediaStream>>(new Map());
   const [isConnected, setIsConnected] = useState(false);
@@ -76,18 +75,13 @@ export function useWebRTC({ conversationId, userId, initiator = false }: UseWebR
       });
 
       peersRef.current.set(targetUserId, peer);
-      setPeers((prev) => {
-        const newMap = new Map(prev);
-        newMap.set(targetUserId, peer);
-        return newMap;
-      });
     };
 
     // For demo: if initiator, wait for other participants
     // In production, you'd fetch conversation members and set up peers for each
     if (initiator) {
       // Listen for new participants joining
-      channel.on('presence', { event: 'join' }, ({ key, newPresences }) => {
+      channel.on('presence', { event: 'join' }, ({ newPresences }) => {
         newPresences.forEach((presence: any) => {
           if (presence.userId !== userId) {
             setupPeer(presence.userId, true);
@@ -107,7 +101,7 @@ export function useWebRTC({ conversationId, userId, initiator = false }: UseWebR
   const endCall = () => {
     localStreamRef.current?.getTracks().forEach((track) => track.stop());
     peersRef.current.forEach((peer) => peer.destroy());
-    setPeers(new Map());
+    peersRef.current.clear();
     setRemoteStreams(new Map());
     setIsConnected(false);
   };

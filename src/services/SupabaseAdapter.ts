@@ -16,6 +16,20 @@ export interface Database {
           created_at: string;
           updated_at: string;
         };
+        Insert: {
+          id: string;
+          username: string;
+          public_key?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          username?: string;
+          public_key?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
       };
       conversations: {
         Row: {
@@ -24,6 +38,20 @@ export interface Database {
           name: string | null;
           created_at: string;
           updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          type: 'direct' | 'group';
+          name?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          type?: 'direct' | 'group';
+          name?: string | null;
+          created_at?: string;
+          updated_at?: string;
         };
       };
       messages: {
@@ -36,6 +64,46 @@ export interface Database {
           message_type: 'text' | 'file' | 'call';
           created_at: string;
           expires_at: string;
+        };
+        Insert: {
+          id: string;
+          conversation_id: string;
+          sender_id: string;
+          encrypted_content: string;
+          iv: string;
+          message_type: 'text' | 'file' | 'call';
+          created_at: string;
+          expires_at: string;
+        };
+        Update: {
+          id?: string;
+          conversation_id?: string;
+          sender_id?: string;
+          encrypted_content?: string;
+          iv?: string;
+          message_type?: 'text' | 'file' | 'call';
+          created_at?: string;
+          expires_at?: string;
+        };
+      };
+      conversation_members: {
+        Row: {
+          conversation_id: string;
+          user_id: string;
+          role: 'admin' | 'member';
+          joined_at: string;
+        };
+        Insert: {
+          conversation_id: string;
+          user_id: string;
+          role: 'admin' | 'member';
+          joined_at?: string;
+        };
+        Update: {
+          conversation_id?: string;
+          user_id?: string;
+          role?: 'admin' | 'member';
+          joined_at?: string;
         };
       };
     };
@@ -238,6 +306,3 @@ export class SupabaseAdapter {
       .subscribe();
   }
 }
-
-// Import MessageFactory for use in adapter
-import { MessageFactory } from './MessageFactory';

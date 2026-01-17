@@ -8,7 +8,7 @@ interface CallWindowProps {
 }
 
 export function CallWindow({ conversationId, userId, onEndCall }: CallWindowProps) {
-  const { localStream, remoteStreams, isConnected, endCall } = useWebRTC({
+  const { localStream, remoteStreams, endCall } = useWebRTC({
     conversationId,
     userId,
     initiator: true,
@@ -55,7 +55,7 @@ export function CallWindow({ conversationId, userId, onEndCall }: CallWindowProp
         </div>
 
         {/* Remote videos */}
-        {Array.from(remoteStreams.entries()).map(([remoteUserId, stream]) => (
+        {Array.from(remoteStreams.entries()).map(([remoteUserId]) => (
           <div
             key={remoteUserId}
             className="relative bg-[var(--color-background-secondary)] rounded-lg overflow-hidden"

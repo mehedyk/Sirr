@@ -1,4 +1,5 @@
-import { SupabaseAdapter } from '@/services/SupabaseAdapter';
+import { SupabaseAdapter, Database } from '@/services/SupabaseAdapter';
+import { SupabaseClient } from '@supabase/supabase-js';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -8,4 +9,4 @@ if (!supabaseUrl || !supabaseAnonKey) {
 }
 
 export const supabaseAdapter = new SupabaseAdapter(supabaseUrl, supabaseAnonKey);
-export const supabase = supabaseAdapter.getClient();
+export const supabase: SupabaseClient<Database> = supabaseAdapter.getClient();

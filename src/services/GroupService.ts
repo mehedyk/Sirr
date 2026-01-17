@@ -7,12 +7,10 @@ import { EncryptionService } from './EncryptionService';
 export class GroupService {
   private supabaseAdapter: SupabaseAdapter;
   private keyManager: KeyManager;
-  private encryptionService: EncryptionService;
 
   constructor(supabaseAdapter: SupabaseAdapter) {
     this.supabaseAdapter = supabaseAdapter;
     this.keyManager = KeyManager.getInstance();
-    this.encryptionService = new EncryptionService();
   }
 
   public async createGroup(name: string, userId: string): Promise<Conversation> {

@@ -85,10 +85,13 @@ export class EncryptionService {
       ['deriveBits', 'deriveKey']
     );
 
+    // Ensure salt is a proper ArrayBuffer for Web Crypto API
+    const saltBuffer = salt.buffer.slice(salt.byteOffset, salt.byteOffset + salt.byteLength);
+
     return crypto.subtle.deriveKey(
       {
         name: 'PBKDF2',
-        salt,
+        salt: saltBuffer,
         iterations: 100000,
         hash: 'SHA-256',
       },

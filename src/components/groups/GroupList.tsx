@@ -1,5 +1,4 @@
 import { Conversation } from '@/domain/models/Conversation';
-import { useAuthStore } from '@/store/authStore';
 
 interface GroupListProps {
   groups: Conversation[];

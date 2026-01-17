@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/store/authStore';
 
 export function useSupabase() {
-  const { setUser, setSession } = useAuthStore();
+  const { setSession } = useAuthStore();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

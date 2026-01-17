@@ -27,7 +27,6 @@ export const useAuthStore = create<AuthState>((set) => ({
     if (error) throw error;
 
     if (data.user) {
-      // @ts-expect-error - Supabase type inference issue, Database type is correct
       const { data: userData, error: userError } = await supabase
         .from('users')
         .select('*')
@@ -59,7 +58,6 @@ export const useAuthStore = create<AuthState>((set) => ({
 
     if (data.user) {
       // Create user profile
-      // @ts-expect-error - Supabase type inference issue, Database type is correct
       const { error: profileError } = await supabase
         .from('users')
         .insert({
@@ -71,7 +69,6 @@ export const useAuthStore = create<AuthState>((set) => ({
 
       if (profileError) throw profileError;
 
-      // @ts-expect-error - Supabase type inference issue, Database type is correct
       const { data: userData, error: userError } = await supabase
         .from('users')
         .select('*')

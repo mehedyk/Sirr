@@ -59,7 +59,7 @@ export class MessageService {
     }
 
     const decryptedMessages = await Promise.all(
-      (data || []).map(async (msg: any) => {
+      (data || []).map(async (msg) => {
         try {
           const decrypted = await this.encryptionService.decrypt(
             msg.encrypted_content,
@@ -108,7 +108,6 @@ export class MessageService {
 
       // Get full message data with encrypted content and IV
       const client = this.supabaseAdapter.getClient();
-      // @ts-expect-error - Supabase type inference issue, Database type is correct
       const { data } = await client
         .from('messages')
         .select('encrypted_content, iv')
@@ -116,11 +115,10 @@ export class MessageService {
         .single();
 
       if (data) {
-        const messageData = data as { encrypted_content: string; iv: string };
         try {
           const decrypted = await this.encryptionService.decrypt(
-            messageData.encrypted_content,
-            messageData.iv,
+            data.encrypted_content,
+            data.iv,
             conversationKey
           );
           const decryptedMessage = MessageFactory.createFromData({

@@ -1,6 +1,6 @@
 import { Conversation } from '@/domain/models/Conversation';
 import { User } from '@/domain/models/User';
-import { SupabaseAdapter, Database } from './SupabaseAdapter';
+import { SupabaseAdapter } from './SupabaseAdapter';
 import { KeyManager } from './KeyManager';
 
 export class GroupService {
@@ -29,7 +29,6 @@ export class GroupService {
     userId: string,
     role: 'admin' | 'member' = 'member'
   ): Promise<void> {
-    // @ts-expect-error - Supabase type inference issue, Database type is correct
     const { error } = await this.supabaseAdapter.getClient()
       .from('conversation_members')
       .insert({
@@ -37,7 +36,7 @@ export class GroupService {
         user_id: userId,
         role,
         joined_at: new Date().toISOString(),
-      } as Database['public']['Tables']['conversation_members']['Insert']);
+      });
 
     if (error) throw error;
 

@@ -10,25 +10,19 @@ export function useSupabase() {
     // Get initial session and user
     const initializeAuth = async () => {
       try {
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        
-        if (sessionError) {
-          console.error('Error getting session:', sessionError);
-          useAuthStore.setState({ loading: false });
-          return;
-        }
+        const { data: { session } } = await supabase.auth.getSession();
         
         setSession(session);
         
         if (session?.user) {
           // Fetch user data
-          const { data: userData, error: userError } = await supabase
+          const { data: userData } = await supabase
             .from('users')
             .select('*')
             .eq('id', session.user.id)
             .single();
 
-          if (userData && !userError) {
+          if (userData) {
             setUser(new User({
               id: userData.id,
               username: userData.username,
@@ -36,17 +30,12 @@ export function useSupabase() {
               createdAt: new Date(userData.created_at),
               updatedAt: new Date(userData.updated_at),
             }));
-          } else if (userError) {
-            console.error('Error fetching user:', userError);
-            setUser(null);
           }
-        } else {
-          setUser(null);
         }
       } catch (error) {
         console.error('Error initializing auth:', error);
       } finally {
-        // Always set loading to false after initialization
+        // Always set loading to false
         useAuthStore.setState({ loading: false });
       }
     };
@@ -61,14 +50,13 @@ export function useSupabase() {
       
       if (session?.user) {
         try {
-          // Fetch user data
-          const { data: userData, error: userError } = await supabase
+          const { data: userData } = await supabase
             .from('users')
             .select('*')
             .eq('id', session.user.id)
             .single();
 
-          if (userData && !userError) {
+          if (userData) {
             setUser(new User({
               id: userData.id,
               username: userData.username,
@@ -76,18 +64,13 @@ export function useSupabase() {
               createdAt: new Date(userData.created_at),
               updatedAt: new Date(userData.updated_at),
             }));
-          } else {
-            setUser(null);
           }
         } catch (error) {
           console.error('Error fetching user on auth change:', error);
-          setUser(null);
         }
       } else {
         setUser(null);
       }
-      
-      useAuthStore.setState({ loading: false });
     });
 
     return () => subscription.unsubscribe();

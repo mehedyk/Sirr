@@ -4,6 +4,9 @@
 @import './themes/midnight-tech.css';
 @import './themes/tech-rust.css';
 @import './themes/solar-shift.css';
+@import './auth.css';
+@import './app.css';
+@import './landing.css';
 
 @tailwind base;
 @tailwind components;
@@ -29,12 +32,3 @@ body {
 #root {
   min-height: 100vh;
 }
-
-/* Zip 1 */
-@import './auth.css';
-
-/* Zip 2 */
-@import './app.css';
-
-/* Zip 3 */
-@import './landing.css';

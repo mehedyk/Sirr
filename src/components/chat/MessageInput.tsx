@@ -1,42 +1,78 @@
-import { useState } from 'react';
+import { useState, useRef, useCallback } from 'react';
 
 interface MessageInputProps {
   onSend: (message: string) => void;
+  onTyping?: () => void;
+  onStoppedTyping?: () => void;
   disabled?: boolean;
 }
 
-export function MessageInput({ onSend, disabled }: MessageInputProps) {
+export function MessageInput({ onSend, onTyping, onStoppedTyping, disabled }: MessageInputProps) {
   const [message, setMessage] = useState('');
+  const stopTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (message.trim() && !disabled) {
-      onSend(message.trim());
-      setMessage('');
+  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setMessage(e.target.value);
+    onTyping?.();
+    if (stopTimer.current) clearTimeout(stopTimer.current);
+    stopTimer.current = setTimeout(() => onStoppedTyping?.(), 2500);
+  };
+
+  const handleSubmit = useCallback(() => {
+    const trimmed = message.trim();
+    if (!trimmed || disabled) return;
+    onSend(trimmed);
+    setMessage('');
+    onStoppedTyping?.();
+    if (stopTimer.current) clearTimeout(stopTimer.current);
+  }, [message, disabled, onSend, onStoppedTyping]);
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit();
     }
   };
 
+  // Auto-resize textarea
+  const handleInput = (e: React.FormEvent<HTMLTextAreaElement>) => {
+    const el = e.currentTarget;
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+  };
+
   return (
-    <form onSubmit={handleSubmit} className="p-4 border-t border-[var(--color-border)]">
-      <div className="flex gap-2">
-        <input
-          type="text"
+    <div className="message-input-wrap">
+      <div className="message-input-inner">
+        <textarea
           value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          placeholder="Type a message..."
+          onChange={handleChange}
+          onKeyDown={handleKeyDown}
+          onInput={handleInput}
+          placeholder="Message… (Enter to send, Shift+Enter for newline)"
           disabled={disabled}
-          className="flex-1 px-4 py-2 bg-[var(--color-background-secondary)] border border-[var(--color-border)] rounded focus:outline-none focus:border-[var(--color-primary)] disabled:opacity-50"
-          style={{ fontFamily: 'var(--font-body)' }}
+          rows={1}
+          className="message-input-textarea"
+          aria-label="Message input"
         />
         <button
-          type="submit"
+          onClick={handleSubmit}
           disabled={disabled || !message.trim()}
-          className="px-6 py-2 bg-[var(--color-primary)] text-[var(--color-background)] font-semibold rounded hover:opacity-90 disabled:opacity-50"
-          style={{ fontFamily: 'var(--font-heading)' }}
+          className="message-send-btn"
+          aria-label="Send message"
         >
-          Send
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M2 8l12-6-6 12V9L2 8z" stroke="currentColor" strokeWidth="1.25" strokeLinejoin="round"/>
+          </svg>
         </button>
       </div>
-    </form>
+      <div className="message-input-hint">
+        <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+          <rect x="1.5" y="4" width="7" height="4.5" rx="1" stroke="currentColor" strokeWidth="1"/>
+          <path d="M3 4V3a2 2 0 014 0v1" stroke="currentColor" strokeWidth="1"/>
+        </svg>
+        End-to-end encrypted
+      </div>
+    </div>
   );
 }

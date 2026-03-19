@@ -1,6 +1,6 @@
 # Sirr (سرّ)
 
-A security-focused messaging application with end-to-end encryption, real-time messaging, and cyber security themed UI.
+A security-focused messaging application with end-to-end encryption, real-time messaging, and cyber security themed UI. This is project is not finished.
 
 ## Features
 

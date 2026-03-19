@@ -1,48 +1,51 @@
 import { Message } from '@/domain/models/Message';
 import { SupabaseAdapter } from './SupabaseAdapter';
 import { KeyManager } from './KeyManager';
-import { EncryptionService } from './EncryptionService';
+import {
+  aesEncrypt, aesDecrypt,
+  deriveHmacKey, hmacSign, hmacVerify,
+} from './CryptoService';
 import { MessageFactory } from './MessageFactory';
+import { supabase } from '@/lib/supabase';
 
 export class MessageService {
   private supabaseAdapter: SupabaseAdapter;
   private keyManager: KeyManager;
-  private encryptionService: EncryptionService;
 
   constructor(supabaseAdapter: SupabaseAdapter) {
     this.supabaseAdapter = supabaseAdapter;
     this.keyManager = KeyManager.getInstance();
-    this.encryptionService = new EncryptionService();
   }
 
   public async sendMessage(
     conversationId: string,
     senderId: string,
     content: string,
+    participantIds: string[],
     messageType: 'text' | 'file' | 'call' = 'text'
   ): Promise<Message> {
-    // Get or generate conversation key
-    let conversationKey = this.keyManager.getConversationKey(conversationId);
-    if (!conversationKey) {
-      conversationKey = await this.keyManager.generateConversationKey(conversationId);
-    }
+    const key = await this.keyManager.ensureConversationKey(conversationId, participantIds);
+    if (!key) throw new Error(
+      'Cannot encrypt: key exchange failed. Ensure all participants have registered public keys.'
+    );
 
-    // Create message
     const message = MessageFactory.createTextMessage(conversationId, senderId, content);
-    if (messageType === 'file') {
-      // Handle file message creation differently if needed
+    const { ciphertext, iv } = await aesEncrypt(content, key);
+
+    // HMAC sign: proves sender identity (holds the shared ECDH key)
+    let hmacSig: string | undefined;
+    try {
+      const hmacKey = await deriveHmacKey(key);
+      hmacSig = await hmacSign(hmacKey, conversationId, message.id, ciphertext);
+    } catch {
+      // Non-fatal — send without HMAC if derivation fails (graceful degradation)
     }
 
-    // Encrypt message
-    const { encrypted, iv } = await this.encryptionService.encrypt(content, conversationKey);
-
-    // Send to Supabase
-    return this.supabaseAdapter.sendMessage(message, encrypted, iv);
+    return this.supabaseAdapter.sendMessage(message, ciphertext, iv, hmacSig);
   }
 
   public async getMessages(conversationId: string): Promise<Message[]> {
-    // Get encrypted messages with full data
-    const { data, error } = await this.supabaseAdapter.getClient()
+    const { data, error } = await supabase
       .from('messages')
       .select('*')
       .eq('conversation_id', conversationId)
@@ -50,48 +53,65 @@ export class MessageService {
 
     if (error) throw error;
 
-    // Decrypt messages
-    const conversationKey = this.keyManager.getConversationKey(conversationId);
-    if (!conversationKey) {
-      // Generate key if it doesn't exist (for new conversations)
-      await this.keyManager.generateConversationKey(conversationId);
-      return []; // Return empty if no key yet
+    const key = await this.keyManager.getConversationKey(conversationId);
+    if (!key) {
+      return (data ?? []).map((msg) =>
+        MessageFactory.createFromData({
+          id: msg.id,
+          conversationId: msg.conversation_id,
+          senderId: msg.sender_id,
+          content: '[Decryption key unavailable — sign out and back in to restore keys]',
+          messageType: msg.message_type,
+          createdAt: new Date(msg.created_at),
+          expiresAt: new Date(msg.expires_at),
+        })
+      );
     }
 
-    const decryptedMessages = await Promise.all(
-      (data || []).map(async (msg) => {
-        try {
-          const decrypted = await this.encryptionService.decrypt(
-            msg.encrypted_content,
-            msg.iv,
-            conversationKey
-          );
-          return MessageFactory.createFromData({
-            id: msg.id,
-            conversationId: msg.conversation_id,
-            senderId: msg.sender_id,
-            content: decrypted,
-            messageType: msg.message_type,
-            createdAt: new Date(msg.created_at),
-            expiresAt: new Date(msg.expires_at),
-          });
-        } catch (error) {
-          console.error('Failed to decrypt message:', error);
-          // Return message with encrypted content if decryption fails
-          return MessageFactory.createFromData({
-            id: msg.id,
-            conversationId: msg.conversation_id,
-            senderId: msg.sender_id,
-            content: '[Encrypted message - decryption failed]',
-            messageType: msg.message_type,
-            createdAt: new Date(msg.created_at),
-            expiresAt: new Date(msg.expires_at),
-          });
-        }
-      })
-    );
+    const now = new Date();
+    const hmacKey = await deriveHmacKey(key).catch(() => null);
 
-    return decryptedMessages;
+    return Promise.all(
+      (data ?? [])
+        .filter((msg) => new Date(msg.expires_at) > now)
+        .map(async (msg) => {
+          try {
+            // Optional HMAC verification
+            if (hmacKey && msg.hmac) {
+              const valid = await hmacVerify(
+                hmacKey, msg.conversation_id, msg.id, msg.encrypted_content, msg.hmac
+              );
+              if (!valid) {
+                return MessageFactory.createFromData({
+                  id: msg.id, conversationId: msg.conversation_id,
+                  senderId: msg.sender_id,
+                  content: '[⚠ Message authentication failed — possible tampering]',
+                  messageType: msg.message_type,
+                  createdAt: new Date(msg.created_at),
+                  expiresAt: new Date(msg.expires_at),
+                });
+              }
+            }
+
+            const content = await aesDecrypt(msg.encrypted_content, msg.iv, key);
+            return MessageFactory.createFromData({
+              id: msg.id, conversationId: msg.conversation_id,
+              senderId: msg.sender_id, content,
+              messageType: msg.message_type,
+              createdAt: new Date(msg.created_at),
+              expiresAt: new Date(msg.expires_at),
+            });
+          } catch {
+            return MessageFactory.createFromData({
+              id: msg.id, conversationId: msg.conversation_id,
+              senderId: msg.sender_id, content: '[Could not decrypt message]',
+              messageType: msg.message_type,
+              createdAt: new Date(msg.created_at),
+              expiresAt: new Date(msg.expires_at),
+            });
+          }
+        })
+    );
   }
 
   public subscribeToMessages(
@@ -99,41 +119,53 @@ export class MessageService {
     callback: (message: Message) => void
   ) {
     return this.supabaseAdapter.subscribeToMessages(conversationId, async (encryptedMessage) => {
-      const conversationKey = this.keyManager.getConversationKey(conversationId);
-      if (!conversationKey) {
-        // Generate key if it doesn't exist
-        await this.keyManager.generateConversationKey(conversationId);
-        return;
-      }
+      if (encryptedMessage.isExpired()) return;
 
-      // Get full message data with encrypted content and IV
-      const client = this.supabaseAdapter.getClient();
-      const { data } = await client
+      const key = await this.keyManager.getConversationKey(conversationId);
+      if (!key) return;
+
+      const { data } = await supabase
         .from('messages')
-        .select('encrypted_content, iv')
+        .select('encrypted_content, iv, hmac')
         .eq('id', encryptedMessage.id)
         .single();
 
-      if (data) {
-        try {
-          const decrypted = await this.encryptionService.decrypt(
-            data.encrypted_content,
-            data.iv,
-            conversationKey
+      if (!data) return;
+
+      try {
+        // HMAC check on realtime too
+        if (data.hmac) {
+          const hmacKey = await deriveHmacKey(key);
+          const valid = await hmacVerify(
+            hmacKey, conversationId, encryptedMessage.id,
+            data.encrypted_content, data.hmac
           );
-          const decryptedMessage = MessageFactory.createFromData({
-            id: encryptedMessage.id,
-            conversationId: encryptedMessage.conversationId,
-            senderId: encryptedMessage.senderId,
-            content: decrypted,
-            messageType: encryptedMessage.messageType,
-            createdAt: encryptedMessage.createdAt,
-            expiresAt: encryptedMessage.expiresAt,
-          });
-          callback(decryptedMessage);
-        } catch (error) {
-          console.error('Failed to decrypt message:', error);
+          if (!valid) {
+            callback(MessageFactory.createFromData({
+              id: encryptedMessage.id,
+              conversationId: encryptedMessage.conversationId,
+              senderId: encryptedMessage.senderId,
+              content: '[⚠ Message authentication failed]',
+              messageType: encryptedMessage.messageType,
+              createdAt: encryptedMessage.createdAt,
+              expiresAt: encryptedMessage.expiresAt,
+            }));
+            return;
+          }
         }
+
+        const content = await aesDecrypt(data.encrypted_content, data.iv, key);
+        callback(MessageFactory.createFromData({
+          id: encryptedMessage.id,
+          conversationId: encryptedMessage.conversationId,
+          senderId: encryptedMessage.senderId,
+          content,
+          messageType: encryptedMessage.messageType,
+          createdAt: encryptedMessage.createdAt,
+          expiresAt: encryptedMessage.expiresAt,
+        }));
+      } catch {
+        // Decryption failed — silently skip
       }
     });
   }

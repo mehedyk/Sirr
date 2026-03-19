@@ -1,15 +1,41 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="neo-noir">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Sirr (سرّ)</title>
-    
-    <!-- Google Fonts - Cyber Security Themes -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600;700&family=Source+Code+Pro:wght@300;400;500;600;700&family=Roboto+Mono:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&family=Orbitron:wght@400;500;600;700;800;900&family=Exo+2:wght@300;400;500;600;700;800;900&family=Barlow:wght@300;400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <title>Sirr (سرّ) — Encrypted Messenger</title>
+    <meta name="description" content="Sirr is an end-to-end encrypted messenger built for privacy. X25519 key exchange. AES-256-GCM encryption. Your messages never leave your control." />
+    <meta name="theme-color" content="#0a0a0a" />
+
+    <!-- OG -->
+    <meta property="og:title" content="Sirr — Encrypted Messenger" />
+    <meta property="og:description" content="End-to-end encrypted. Zero knowledge. Your messages are yours alone." />
+    <meta property="og:type" content="website" />
+
+    <!-- Preconnect -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <!-- Fonts: all themes + Arabic -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600;700&family=Source+Code+Pro:wght@300;400;500;600;700&family=Roboto+Mono:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&family=Orbitron:wght@400;500;600;700;800;900&family=Exo+2:wght@300;400;500;600;700;800;900&family=Barlow:wght@300;400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&family=Scheherazade+New:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Apply saved theme before React mounts — prevents flash -->
+    <script>
+      (function () {
+        try {
+          var saved = localStorage.getItem('sirr-theme');
+          var valid = ['neo-noir','digital-matrix','midnight-tech','tech-rust','solar-shift'];
+          var theme = (saved && valid.indexOf(saved) !== -1) ? saved : 'neo-noir';
+          document.documentElement.setAttribute('data-theme', theme);
+        } catch (e) {
+          document.documentElement.setAttribute('data-theme', 'neo-noir');
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

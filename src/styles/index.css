@@ -29,3 +29,12 @@ body {
 #root {
   min-height: 100vh;
 }
+
+/* Zip 1 */
+@import './auth.css';
+
+/* Zip 2 */
+@import './app.css';
+
+/* Zip 3 */
+@import './landing.css';

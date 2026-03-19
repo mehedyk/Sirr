@@ -2,79 +2,104 @@ import { useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/store/authStore';
 import { User } from '@/domain/models/User';
+import { KeyManager } from '@/services/KeyManager';
 
+/**
+ * Initializes auth state from the existing Supabase session.
+ * Called once at the app root. Does NOT create a new Supabase client.
+ */
 export function useSupabase() {
-  const { setSession, setUser } = useAuthStore();
+  const { setUser, setStatus } = useAuthStore();
 
   useEffect(() => {
-    // Get initial session and user
-    const initializeAuth = async () => {
+    let mounted = true;
+
+    const initAuth = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        setSession(session);
-        
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+
+        if (!mounted) return;
+
         if (session?.user) {
-          // Fetch user data
           const { data: userData } = await supabase
             .from('users')
             .select('*')
             .eq('id', session.user.id)
             .single();
 
+          if (!mounted) return;
+
           if (userData) {
-            setUser(new User({
-              id: userData.id,
-              username: userData.username,
-              publicKey: userData.public_key || undefined,
-              createdAt: new Date(userData.created_at),
-              updatedAt: new Date(userData.updated_at),
-            }));
+            setUser(
+              new User({
+                id: userData.id,
+                username: userData.username,
+                publicKey: userData.public_key ?? undefined,
+                createdAt: new Date(userData.created_at),
+                updatedAt: new Date(userData.updated_at),
+              })
+            );
+            setStatus('authenticated');
+            // Note: we can't re-init KeyManager here without the password.
+            // The user will need to re-login on a new session for key ops.
+            // Future ZIP: implement key recovery flow.
+          } else {
+            setStatus('unauthenticated');
           }
+        } else {
+          setStatus('unauthenticated');
         }
-      } catch (error) {
-        console.error('Error initializing auth:', error);
-      } finally {
-        // Always set loading to false
-        useAuthStore.setState({ loading: false });
+      } catch (err) {
+        if (mounted) setStatus('unauthenticated');
       }
     };
 
-    initializeAuth();
+    initAuth();
 
-    // Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      setSession(session);
-      
-      if (session?.user) {
-        try {
-          const { data: userData } = await supabase
-            .from('users')
-            .select('*')
-            .eq('id', session.user.id)
-            .single();
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (!mounted) return;
 
-          if (userData) {
-            setUser(new User({
+      if (event === 'SIGNED_OUT') {
+        KeyManager.getInstance().clear();
+        setUser(null);
+        setStatus('unauthenticated');
+        return;
+      }
+
+      if (event === 'TOKEN_REFRESHED' && session) {
+        // Session refreshed — no action needed, Supabase client handles it
+        return;
+      }
+
+      if (session?.user) {
+        const { data: userData } = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', session.user.id)
+          .single();
+
+        if (mounted && userData) {
+          setUser(
+            new User({
               id: userData.id,
               username: userData.username,
-              publicKey: userData.public_key || undefined,
+              publicKey: userData.public_key ?? undefined,
               createdAt: new Date(userData.created_at),
               updatedAt: new Date(userData.updated_at),
-            }));
-          }
-        } catch (error) {
-          console.error('Error fetching user on auth change:', error);
+            })
+          );
+          setStatus('authenticated');
         }
-      } else {
-        setUser(null);
       }
     });
 
-    return () => subscription.unsubscribe();
-  }, [setSession, setUser]);
-
-  return {};
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, [setUser, setStatus]);
 }

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { supabaseAdapter } from '@/lib/supabase';
+import { supabaseAdapter } from '@/services/SupabaseAdapter';
 
 interface CreateGroupProps {
   onGroupCreated: () => void;

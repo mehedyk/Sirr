@@ -14,6 +14,7 @@ export interface Database {
           id: string
           username: string
           public_key: string | null
+          key_algorithm: string
           created_at: string
           updated_at: string
         }
@@ -21,6 +22,7 @@ export interface Database {
           id: string
           username: string
           public_key?: string | null
+          key_algorithm?: string
           created_at?: string
           updated_at?: string
         }
@@ -28,6 +30,7 @@ export interface Database {
           id?: string
           username?: string
           public_key?: string | null
+          key_algorithm?: string
           created_at?: string
           updated_at?: string
         }
@@ -55,6 +58,29 @@ export interface Database {
           updated_at?: string
         }
       }
+      conversation_members: {
+        Row: {
+          id: string
+          conversation_id: string
+          user_id: string
+          joined_at: string
+          role: 'admin' | 'member'
+        }
+        Insert: {
+          id?: string
+          conversation_id: string
+          user_id: string
+          joined_at?: string
+          role?: 'admin' | 'member'
+        }
+        Update: {
+          id?: string
+          conversation_id?: string
+          user_id?: string
+          joined_at?: string
+          role?: 'admin' | 'member'
+        }
+      }
       messages: {
         Row: {
           id: string
@@ -62,6 +88,7 @@ export interface Database {
           sender_id: string
           encrypted_content: string
           iv: string
+          hmac: string | null
           message_type: 'text' | 'file' | 'call'
           created_at: string
           expires_at: string
@@ -72,6 +99,7 @@ export interface Database {
           sender_id: string
           encrypted_content: string
           iv: string
+          hmac?: string | null
           message_type: 'text' | 'file' | 'call'
           created_at: string
           expires_at: string
@@ -82,32 +110,27 @@ export interface Database {
           sender_id?: string
           encrypted_content?: string
           iv?: string
+          hmac?: string | null
           message_type?: 'text' | 'file' | 'call'
           created_at?: string
           expires_at?: string
         }
       }
-      conversation_members: {
+      read_receipts: {
         Row: {
-          id: string
           conversation_id: string
           user_id: string
-          role: 'admin' | 'member'
-          joined_at: string
+          read_at: string
         }
         Insert: {
-          id?: string
           conversation_id: string
           user_id: string
-          role: 'admin' | 'member'
-          joined_at?: string
+          read_at?: string
         }
         Update: {
-          id?: string
           conversation_id?: string
           user_id?: string
-          role?: 'admin' | 'member'
-          joined_at?: string
+          read_at?: string
         }
       }
       conversation_keys: {
@@ -115,21 +138,27 @@ export interface Database {
           id: string
           conversation_id: string
           user_id: string
+          sender_id: string | null
           encrypted_key: string
+          key_version: number
           created_at: string
         }
         Insert: {
           id?: string
           conversation_id: string
           user_id: string
+          sender_id?: string | null
           encrypted_key: string
+          key_version?: number
           created_at?: string
         }
         Update: {
           id?: string
           conversation_id?: string
           user_id?: string
+          sender_id?: string | null
           encrypted_key?: string
+          key_version?: number
           created_at?: string
         }
       }
@@ -160,14 +189,8 @@ export interface Database {
         }
       }
     }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      [_ in never]: never
-    }
-    Enums: {
-      [_ in never]: never
-    }
+    Views: Record<string, never>
+    Functions: Record<string, never>
+    Enums: Record<string, never>
   }
 }

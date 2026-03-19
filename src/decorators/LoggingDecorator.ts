@@ -1,48 +1,41 @@
-// Decorator Pattern: LoggingDecorator adds logging capabilities to services
+/**
+ * LoggingDecorator — structured logging for Sirr services.
+ * Production: only logs 'error' level to avoid leaking IDs/metadata.
+ * Development: logs all levels to the browser console.
+ */
+
+const IS_DEV = import.meta.env.DEV;
+
+type LogLevel = 'info' | 'warn' | 'error';
+
 export class LoggingDecorator {
   private serviceName: string;
-  private enabled: boolean = true;
 
   constructor(serviceName: string) {
     this.serviceName = serviceName;
   }
 
-  public enable(): void {
-    this.enabled = true;
+  private shouldLog(level: LogLevel): boolean {
+    if (IS_DEV) return true;
+    // In production, only errors are surfaced — prevent metadata leakage (S10)
+    return level === 'error';
   }
 
-  public disable(): void {
-    this.enabled = false;
-  }
-
-  public log(level: 'info' | 'warn' | 'error', message: string, data?: any): void {
-    if (!this.enabled) return;
-
-    const timestamp = new Date().toISOString();
-    const logMessage = `[${timestamp}] [${this.serviceName}] [${level.toUpperCase()}] ${message}`;
-
-    switch (level) {
-      case 'info':
-        console.log(logMessage, data || '');
-        break;
-      case 'warn':
-        console.warn(logMessage, data || '');
-        break;
-      case 'error':
-        console.error(logMessage, data || '');
-        break;
+  log(level: LogLevel, message: string, data?: unknown): void {
+    if (!this.shouldLog(level)) return;
+    const prefix = `[Sirr/${this.serviceName}] ${level.toUpperCase()}`;
+    // Never log data objects in production — they may contain user IDs / keys
+    if (IS_DEV) {
+      if (level === 'error') console.error(prefix, message, data ?? '');
+      else if (level === 'warn') console.warn(prefix, message, data ?? '');
+      else console.log(prefix, message, data ?? '');
+    } else {
+      // Production: sanitise — only the message string, no data
+      console.error(prefix, message);
     }
   }
 
-  public info(message: string, data?: any): void {
-    this.log('info', message, data);
-  }
-
-  public warn(message: string, data?: any): void {
-    this.log('warn', message, data);
-  }
-
-  public error(message: string, data?: any): void {
-    this.log('error', message, data);
-  }
+  info(message: string, data?: unknown): void  { this.log('info',  message, data); }
+  warn(message: string, data?: unknown): void  { this.log('warn',  message, data); }
+  error(message: string, data?: unknown): void { this.log('error', message, data); }
 }

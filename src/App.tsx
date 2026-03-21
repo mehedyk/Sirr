@@ -47,7 +47,8 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
 function AuthRoute({ children }: { children: React.ReactNode }) {
   const status = useAuthStore((s) => s.status);
-  if (status === 'loading') return <Spinner />;
+  // Don't block on loading — let login/signup render immediately
+  // Once auth resolves, redirect away if already logged in
   if (status === 'authenticated') return <Navigate to="/dashboard" replace />;
   return <>{children}</>;
 }
@@ -58,6 +59,7 @@ function AuthenticatedShell({ children }: { children: React.ReactNode }) {
 }
 
 function AppRoutes() {
+  // useSupabase MUST run at top level so auth state resolves for all routes
   useSupabase();
   const { currentTheme } = useTheme();
   useEffect(() => { if (currentTheme) currentTheme.apply(); }, [currentTheme]);

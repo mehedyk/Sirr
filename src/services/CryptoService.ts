@@ -175,9 +175,19 @@ export interface PasswordStrength {
   isValid: boolean;
 }
 
-export function checkPasswordStrength(password: string): PasswordStrength {
+export function checkPasswordStrength(password: string | null | undefined): PasswordStrength {
   const feedback: string[] = [];
   let score = 0;
+
+  if (!password) {
+    return {
+      score: 0,
+      label: 'Too weak',
+      feedback: ['Password is required'],
+      isValid: false
+    };
+  }
+
   if (password.length >= 12) score++; else feedback.push('Use at least 12 characters');
   if (password.length >= 16) score++;
   if (/[A-Z]/.test(password) && /[a-z]/.test(password)) score++; else feedback.push('Mix uppercase and lowercase');

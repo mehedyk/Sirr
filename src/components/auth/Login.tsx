@@ -54,7 +54,10 @@ export function Login() {
     if (isLocked) return;
 
     // Client-side validation
-    const fe = { email: !validateEmail(email), password: password.length < 1 };
+    const fe = { 
+      email: !email || !validateEmail(email), 
+      password: !password || password.length < 1 
+    };
     if (fe.email || fe.password) {
       setFieldErrors(fe);
       setError(fe.email ? 'Enter a valid email address.' : 'Password is required.');

@@ -96,7 +96,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     // Password strength check
     const strength = checkPasswordStrength(password);
     if (!strength.isValid) {
-      throw new Error(`Password too weak: ${strength.feedback.join(', ')}`);
+      const feedback = strength.feedback?.join(', ') || 'not strong enough';
+      throw new Error(`Password too weak: ${feedback}`);
     }
 
     set({ status: 'loading', loading: true });

@@ -13,6 +13,7 @@ export function validateEmail(email: string): boolean {
  * Min 12 chars, at least one uppercase, one number, one special char.
  */
 export function validatePassword(password: string): boolean {
+  if (!password) return false;
   return (
     password.length >= 12 &&
     /[A-Z]/.test(password) &&

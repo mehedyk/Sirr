@@ -55,7 +55,7 @@ export function SignUp() {
   };
 
   const strengthColors = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#16a34a'];
-  const strengthColor = password.length > 0 ? strengthColors[strength.score] : 'transparent';
+  const strengthColor = (password && password.length > 0) ? strengthColors[strength.score] : 'transparent';
 
   return (
     <div className="auth-page">
@@ -134,7 +134,7 @@ export function SignUp() {
             <div className={`auth-field ${fieldErrors.password ? 'auth-field--error' : ''}`}>
               <label htmlFor="password" className="auth-label">
                 Password
-                {password.length > 0 && (
+                {password && password.length > 0 && (
                   <span className="auth-strength-label" style={{ color: strengthColor }}>
                     {strength.label}
                   </span>
@@ -180,7 +180,7 @@ export function SignUp() {
               </div>
 
               {/* Strength bar */}
-              {password.length > 0 && (
+              {password && password.length > 0 && (
                 <div className="auth-strength-bar" aria-hidden="true">
                   {Array.from({ length: 4 }).map((_, i) => (
                     <div
@@ -196,7 +196,7 @@ export function SignUp() {
               )}
 
               {/* Feedback hints */}
-              {password.length > 0 && strength.feedback.length > 0 && (
+              {password && password.length > 0 && strength?.feedback && strength.feedback.length > 0 && (
                 <ul className="auth-strength-hints">
                   {strength.feedback.map((hint, i) => (
                     <li key={i}>{hint}</li>
